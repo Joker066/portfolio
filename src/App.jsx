@@ -403,145 +403,172 @@ function Section({ title, children, right }) {
 // ---- Project card: hover/tap expands Details (no inner scroll) ----
 function ProjectCard({ p, lang }) {
   const [open, setOpen] = React.useState(false);
+  const overlayRef = React.useRef(null);
+
   const { title, summary } = p.i18n[lang] || p.i18n.en;
   const labels = I18N[lang]?.detailsLabels || I18N.en.detailsLabels;
   const D = (p.details && (p.details[lang] || p.details.en)) || null;
 
+  // Close on Esc
+  React.useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // If pointer leaves the whole wrapper, close unless moving into overlay
+  const onWrapperLeave = (e) => {
+    const into = e.relatedTarget;
+    if (overlayRef.current && into && overlayRef.current.contains(into)) return;
+    setOpen(false);
+  };
+
   return (
     <div
       className={`
-        group relative overflow-visible rounded-2xl ${THEME.ring} bg-slate-900/5
+        relative overflow-visible rounded-2xl
         transition-shadow duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
-        hover:z-50 hover:shadow-2xl
+        ${open ? "z-50 shadow-2xl" : "hover:z-20 hover:shadow-2xl"}
       `}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={onWrapperLeave}
+      onFocus={() => setOpen(true)}
       tabIndex={0}
     >
-      {/* Cover */}
-      <div className="relative aspect-[16/9] bg-gradient-to-br from-slate-800 to-slate-900">
-        {p.cover ? (
-          <img
-            src={p.cover}
-            alt={title}
-            className="w-full h-full object-cover"
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
-          />
-        ) : (
-          <div className="absolute inset-0 grid place-items-center text-slate-500">
-            <Layers className="w-8 h-8 mb-2" />
-            <span className="text-xs">No cover</span>
-          </div>
-        )}
-      </div>
-
-      {/* Body */}
-      <div className="p-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-sm font-semibold text-slate-100">{title}</h3>
-          <div className="flex gap-1 flex-wrap">
-            {p.stack.map((t, i) => (
-              <Chip key={i}>{t}</Chip>
-            ))}
-          </div>
+      {/* Surface (keeps base rounded clipping) */}
+      <div className={`rounded-2xl overflow-hidden ${THEME.ring} bg-slate-900/5`}>
+        {/* Cover */}
+        <div className="relative aspect-[16/9] bg-gradient-to-br from-slate-800 to-slate-900">
+          {p.cover ? (
+            <img
+              src={p.cover}
+              alt={title}
+              className="w-full h-full object-cover"
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+            />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center text-slate-500">
+              <Layers className="w-8 h-8 mb-2" />
+              <span className="text-xs">No cover</span>
+            </div>
+          )}
         </div>
-        <p className={`mt-2 text-[13px] ${THEME.subtext}`}>{summary}</p>
-        <div className="mt-3 flex items-center gap-4 flex-wrap">
-          {p.link ? (
-            <a href={p.link} target="_blank" rel="noreferrer" className={THEME.link}>
-              <ExternalLink className="inline-block w-3.5 h-3.5 -mt-0.5" /> Repo
-            </a>
-          ) : null}
-          {p.demo ? (
-            <a href={p.demo} target="_blank" rel="noreferrer" className={THEME.link}>
-              <ExternalLink className="inline-block w-3.5 h-3.5 -mt-0.5" /> Demo
-            </a>
-          ) : null}
 
-          {/* Touch-friendly toggle (hidden on md+: hover expands) */}
-          {D && (
+        {/* Body (no links here) */}
+        <div className="p-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm font-semibold text-slate-100">{title}</h3>
+            <div className="flex gap-1 flex-wrap">
+              {p.stack.map((t, i) => (
+                <Chip key={i}>{t}</Chip>
+              ))}
+            </div>
+          </div>
+          <p className={`mt-2 text-[13px] ${THEME.subtext}`}>{summary}</p>
+
+          {/* Mobile open button (hidden on md+) */}
+          {(D || p.link || p.demo) && (
             <button
-              onClick={() => setOpen((v) => !v)}
-              className="ml-auto md:hidden text-xs px-2 py-1 rounded-full border border-slate-600 text-slate-200 hover:bg-slate-800/60"
+              onClick={() => setOpen(true)}
+              className="mt-3 md:hidden text-xs px-2 py-1 rounded-full border border-slate-600 text-slate-200 hover:bg-slate-800/60"
               aria-expanded={open}
               aria-controls={`details-${title}`}
             >
-              {labels.details}
+              More
             </button>
           )}
         </div>
       </div>
 
-      {/* Background scrim (dim + blur) */}
+      {/* Scrim (click to close) */}
       <div
         className={`
           fixed inset-0 z-40 bg-black/40 backdrop-blur-sm
-          opacity-0 md:group-hover:opacity-100 ${open ? "opacity-100" : ""}
-          transition-opacity duration-300 pointer-events-none
+          transition-opacity duration-300
+          ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
         `}
+        onClick={() => setOpen(false)}
       />
 
-      {/* Details overlay inside the card (keeps rounded corners) */}
-      {D && (
-        <div
-          className={`
-            absolute left-0 right-0 top-0 z-50 rounded-2xl bg-[#0d1730]/95 text-slate-200 ring-1 ring-slate-700/70 shadow-2xl
-            opacity-0 translate-y-2
-            md:group-hover:opacity-100 md:group-hover:translate-y-0
-            ${open ? "opacity-100 translate-y-0" : ""}
-            transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
-            md:group-hover:-left-6 md:group-hover:-right-6 md:group-hover:-top-8
-            ${open ? "-left-6 -right-6 -top-8" : ""}
-            max-h-[90vh] overflow-auto
-          `}
-        >
-          <div className="p-4 md:p-6">
-            <ul className="space-y-3 text-[13px] leading-relaxed">
+      {/* Overlay (enlarged; auto-height; text unchanged) */}
+      <div
+        ref={overlayRef}
+        id={`details-${title}`}
+        className={`
+          absolute left-0 right-0 top-0 z-50 rounded-2xl
+          bg-[#0d1730]/95 text-slate-200 ring-1 ring-slate-700/70 shadow-2xl
+          transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
+          ${open ? "-left-6 -right-6 -top-8 opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"}
+          max-h-[90vh] overflow-auto
+        `}
+        onMouseLeave={() => setOpen(false)}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
+        {/* Optional larger cover */}
+        {p.cover && (
+          <div className="aspect-[16/9] w-full bg-slate-900">
+            <img src={p.cover} alt={title} className="w-full h-full object-cover" />
+          </div>
+        )}
+
+        <div className="p-4 md:p-6">
+          {D ? (
+            <ul className="space-y-4 text-[13px] leading-relaxed">
               {D.goal?.length > 0 && (
                 <li>
                   <div className="font-semibold text-slate-100 mb-1">{labels.goal}</div>
-                  <ul className="list-disc ml-5 space-y-1">{D.goal.map((s,i)=><li key={`g${i}`}>{s}</li>)}</ul>
+                  <ul className="list-disc ml-5 space-y-1">{D.goal.map((s, i) => <li key={`g${i}`}>{s}</li>)}</ul>
                 </li>
               )}
               {D.role?.length > 0 && (
                 <li>
                   <div className="font-semibold text-slate-100 mb-1">{labels.role}</div>
-                  <ul className="list-disc ml-5 space-y-1">{D.role.map((s,i)=><li key={`r${i}`}>{s}</li>)}</ul>
+                  <ul className="list-disc ml-5 space-y-1">{D.role.map((s, i) => <li key={`r${i}`}>{s}</li>)}</ul>
                 </li>
               )}
               {D.decisions?.length > 0 && (
                 <li>
                   <div className="font-semibold text-slate-100 mb-1">{labels.decisions}</div>
-                  <ul className="list-disc ml-5 space-y-1">{D.decisions.map((s,i)=><li key={`d${i}`}>{s}</li>)}</ul>
+                  <ul className="list-disc ml-5 space-y-1">{D.decisions.map((s, i) => <li key={`d${i}`}>{s}</li>)}</ul>
                 </li>
               )}
               {D.outcome?.length > 0 && (
                 <li>
                   <div className="font-semibold text-slate-100 mb-1">{labels.outcome}</div>
-                  <ul className="list-disc ml-5 space-y-1">{D.outcome.map((s,i)=><li key={`o${i}`}>{s}</li>)}</ul>
+                  <ul className="list-disc ml-5 space-y-1">{D.outcome.map((s, i) => <li key={`o${i}`}>{s}</li>)}</ul>
                 </li>
               )}
             </ul>
-            {(p.link || p.demo) && (
-              <div className="mt-4 flex items-center gap-4">
-                {p.link && (
-                  <a href={p.link} target="_blank" rel="noreferrer" className={THEME.link}>
-                    <ExternalLink className="inline-block w-3.5 h-3.5 -mt-0.5" /> Repo
-                  </a>
-                )}
-                {p.demo && (
-                  <a href={p.demo} target="_blank" rel="noreferrer" className={THEME.link}>
-                    <ExternalLink className="inline-block w-3.5 h-3.5 -mt-0.5" /> Demo
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+          ) : (
+            // Fallback when details are missing
+            <div className="text-[13px] leading-relaxed">
+              <div className="font-semibold text-slate-100 mb-2">{title}</div>
+              <p className="text-slate-300">{summary}</p>
+            </div>
+          )}
 
+          {(p.link || p.demo) && (
+            <div className="mt-4 flex items-center gap-4">
+              {p.link && (
+                <a href={p.link} target="_blank" rel="noopener noreferrer" className={THEME.link}>
+                  <ExternalLink className="inline-block w-3.5 h-3.5 -mt-0.5" /> Repo
+                </a>
+              )}
+              {p.demo && (
+                <a href={p.demo} target="_blank" rel="noopener noreferrer" className={THEME.link}>
+                  <ExternalLink className="inline-block w-3.5 h-3.5 -mt-0.5" /> Demo
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
+
 
 // ---- Page ----
 export default function Portfolio() {
