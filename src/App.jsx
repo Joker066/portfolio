@@ -7,16 +7,15 @@ import {
   Code2,
   Cpu,
   Rocket,
-  Award,
   Layers,
   Languages,
 } from "lucide-react";
 
 /**
- * DISTINCT PORTFOLIO LAYOUT (dark, showcase-style) with i18n toggle (EN/PL)
- * Fixes:
- * - Replaced non-ASCII non-breaking hyphen (\u2011) with regular hyphen (-) everywhere (e.g., "Peng-Yin", "Web-Chess").
- * - Fixed header/section structure (closed <header>, moved sections outside) to avoid JSX nesting issues.
+ * Portfolio (dark, showcase-style) with i18n toggle (EN/PL)
+ * - Removed all print-related CSS/logic (this page is not for printing)
+ * - Hover/tap reveals an expanding Details panel (no inner scrolling)
+ * - On large screens: card widens on hover to reduce scrolling need
  */
 
 // ---- Theme (dark) ----
@@ -46,23 +45,38 @@ const I18N = {
   en: {
     title: "Systems • AI/ML • Web/Deploy",
     filters: { all: "All" },
-    sections: { projects: "Projects", awards: "Awards" },
+    sections: { projects: "Projects" },
     categories: {
       Systems: "Systems",
       "AI/ML": "AI/ML",
       "Web/Deploy": "Web/Deploy",
       "Algorithms/Math": "Algorithms/Math",
     },
+    detailsLabels: {
+      goal: "Goal",
+      role: "Role",
+      decisions: "Key decisions",
+      outcome: "Outcome",
+      close: "Close",
+    },
   },
   pl: {
     title: "Systemy • SI/ML • Web/Wdrożenia",
     filters: { all: "Wszystko" },
-    sections: { projects: "Projekty", awards: "Nagrody" },
+    sections: { projects: "Projekty" },
     categories: {
       Systems: "Systemy",
       "AI/ML": "SI/ML",
       "Web/Deploy": "Web/Wdrożenia",
       "Algorithms/Math": "Algorytmy/Matematyka",
+    },
+    detailsLabels: {
+      goal: "Cel",
+      role: "Rola",
+      decisions: "Kluczowe decyzje",
+      outcome: "Wynik",
+      details: "Szczegóły",
+      close: "Zamknij",
     },
   },
 };
@@ -75,7 +89,7 @@ const CATEGORIES = [
   { key: "Algorithms/Math", icon: Code2 },
 ];
 
-// ---- Content with per-language strings ----
+// ---- Content with per-language strings + details ----
 const PROJECTS = [
   {
     i18n: {
@@ -95,6 +109,46 @@ const PROJECTS = [
     demo: "",
     category: ["Web/Deploy", "AI/ML"],
     cover: "/covers/plt.png",
+    details: {
+      en: {
+        goal: [
+          "Build a vocabulary trainer with admin-approved data.",
+          "Keep setup and deployment simple.",
+          "Design a question-selection mechanism that strengthens learning.",
+        ],
+        role: [
+          "Sole author/maintainer: Flask backend and lightweight UI; deployment with Docker + Nginx; storage with SQLite.",
+        ],
+        decisions: [
+          "Approval pipeline for entries (review → approve → publish).",
+          "“20 Questions” practice engine to drive active recall.",
+          "Lightweight POS classifier (avoids heavy NLP stack, but works well in most cases).",
+        ],
+        outcome: [
+          "Fast local spin-up and low-cost deployment.",
+          "Modular design ready for add-ons (new routes, alternative database formats).",
+        ],
+      },
+      pl: {
+        goal: [
+          "Zbudować trener słownictwa z danymi zatwierdzanymi przez administratora.",
+          "Utrzymać prosty proces uruchomienia i wdrożenia.",
+          "Zaprojektować mechanizm doboru pytań, który wzmacnia naukę.",
+        ],
+        role: [
+          "Autor i maintainer: backend w Flasku i lekkie UI; wdrożenie Docker + Nginx; baza SQLite.",
+        ],
+        decisions: [
+          "Pipeline akceptacji wpisów (przegląd → akceptacja → publikacja).",
+          "Silnik „20 pytań” wspierający aktywne przywoływanie.",
+          "Lekki klasyfikator POS (unika ciężkiego NLP, a w większości przypadków sprawdza się dobrze).",
+        ],
+        outcome: [
+          "Szybkie uruchomienie lokalne i niskokosztowe wdrożenie.",
+          "Modułowa architektura gotowa na rozszerzenia (nowe trasy, alternatywne formaty baz danych).",
+        ],
+      },
+    },
   },
   {
     i18n: {
@@ -114,6 +168,44 @@ const PROJECTS = [
     demo: "",
     category: ["Algorithms/Math", "AI/ML"],
     cover: "/covers/chess.png",
+    details: {
+      en: {
+        goal: [
+          "Build an in-browser chess engine and trainer that works fully offline.",
+          "Make it easy to generate training data and train the value model.",
+        ],
+        role: [
+          "Sole author: search engine and heuristics, trainer UI, and tooling for dataset generation and offline training of a compact value model.",
+        ],
+        decisions: [
+          "Alpha–beta search with a Transposition Table (Zobrist), Late Move Reductions, and iterative deepening.",
+          "Compact MLP value network (small footprint, fast inference).",
+          "Conservative depth/time caps to keep interaction smooth and predictable.",
+        ],
+        outcome: [
+          "Smooth, backend-free play with low memory usage.",
+          "Quick move responses at low/medium depths.",
+        ],
+      },
+      pl: {
+        goal: [
+          "Zbudować silnik i trener szachowy działające w przeglądarce, w pełni offline.",
+          "Ułatwić generowanie danych treningowych i trenowanie modelu wartościującego.",
+        ],
+        role: [
+          "Autor solo: silnik wyszukiwania i heurystyki, UI trenera oraz narzędzia do generowania zbiorów i offline’owego trenowania kompaktowego modelu wartości.",
+        ],
+        decisions: [
+          "Alpha–beta z tablicą transpozycji (Zobrist), Late Move Reductions i iterative deepening.",
+          "Kompaktowa sieć MLP do oceny (mały narzut, szybka inferencja).",
+          "Konserwatywne limity głębokości/czasu dla płynnej i przewidywalnej interakcji.",
+        ],
+        outcome: [
+          "Płynna rozgrywka bez backendu, niski narzut pamięci.",
+          "Szybkie odpowiedzi na niskich/średnich głębokościach.",
+        ],
+      },
+    },
   },
   {
     i18n: {
@@ -133,6 +225,30 @@ const PROJECTS = [
     demo: "https://editor.p5js.org/Joker066/full/DC-igYdly",
     category: ["Web/Deploy"],
     cover: "/covers/water.png",
+    details: {
+      en: {
+        goal: [
+          "Create a browser-based audio-visual piece inspired by the character “水”.",
+          "Generate calm, evolving textures using a simple, rule-based system.",
+        ],
+        role: ["Sole author: concept, audio design, and visual rendering."],
+        decisions: [
+          "Built a note-transition matrix derived from features of “水” to guide pitch movement.",
+        ],
+        outcome: ["Zero-install, quick to load, and soothing."],
+      },
+      pl: {
+        goal: [
+          "Stworzyć przeglądarkową kompozycję audiowizualną inspirowaną znakiem „水”.",
+          "Generować spokojne, ewoluujące faktury w oparciu o prosty, regułowy system.",
+        ],
+        role: ["Autor solo: koncepcja, projekt dźwięku i warstwa wizualna."],
+        decisions: [
+          "Macierz przejść nut wyprowadzona z cech znaku „水”, która prowadzi ruch wysokości dźwięku.",
+        ],
+        outcome: ["Zero instalacji, szybkie ładowanie i kojący odbiór."],
+      },
+    },
   },
   {
     i18n: {
@@ -147,11 +263,49 @@ const PROJECTS = [
           "Platformówka 2D; rozgrywka/fizyka oraz heurystyczne AI przeciwnika; praca zespołowa z Git.",
       },
     },
-    stack: ["Unity", "C#", "Git"],
+    stack: ["Unity", "C#", "Git", "Awarded"],
     link: "https://github.com/Joker066/ROM",
     demo: "https://youtu.be/GXqoc0RkPAU?si=S4FxBDKpkf-58LZT",
     category: ["Systems"],
     cover: "/covers/rom.png",
+    details: {
+      en: {
+        goal: [
+          "Build a 2D platformer with responsive controls, grounded physics, and a distinctive swinging-based movement mechanic.",
+          "Ship a stable demo as a small team using a clean Git workflow.",
+        ],
+        role: [
+          "Gameplay & physics programming; designed and implemented heuristic enemy AI; collaboration via branching and PR reviews.",
+        ],
+        decisions: [
+          "Swinging-based traversal integrated into the core movement/collision system for a tight feel.",
+          "Enemies driven by lightweight heuristics (distance, line of sight, simple state machine) instead of heavy pathfinding.",
+          "Level scripting and prefabs organized for scalable level design and fast iteration.",
+        ],
+        outcome: [
+          "Stable demo builds with playable levels.",
+          "Best Technical Award — Taiwan College Game Design Competition 2024.",
+        ],
+      },
+      pl: {
+        goal: [
+          "Zbudować platformówkę 2D z responsywnym sterowaniem, fizyką i mechaniką ruchu opartą na huśtaniu (swinging).",
+          "Dostarczyć stabilne demo w małym zespole, korzystając z czystego workflow Git.",
+        ],
+        role: [
+          "Programowanie rozgrywki i fizyki; projekt i implementacja heurystycznego AI przeciwników; współpraca poprzez branchowanie i przeglądy PR.",
+        ],
+        decisions: [
+          "Integracja mechaniki huśtania z rdzeniem ruchu/kolizji dla „tight feel”.",
+          "Przeciwnicy sterowani lekkimi heurystykami (odległość, linia wzroku, prosta maszyna stanów) zamiast ciężkiego pathfindingu.",
+          "Skryptowanie poziomów i prefabrykaty uporządkowane pod skalowalny level design i szybką iterację.",
+        ],
+        outcome: [
+          "Stabilne buildy demonstracyjne z grywalnymi poziomami.",
+          "Best Technical Award — Taiwan College Game Design Competition 2024.",
+        ],
+      },
+    },
   },
   {
     i18n: {
@@ -167,26 +321,45 @@ const PROJECTS = [
       },
     },
     stack: ["C (C11)", "Unity build", "ds_all.c"],
-    link: "https://github.com/Joker066/ds", // replace if different
+    link: "https://github.com/Joker066/ds",
     demo: "",
     category: ["Systems", "Algorithms/Math"],
-    cover: "/covers/c-ds.png" // optional; remove if you don't have one yet
-  },
-];
-
-const AWARDS = [
-  {
-    i18n: {
+    cover: "/covers/c-ds.png",
+    details: {
       en: {
-        title: "Best Technical Award — Taiwan College Game Design Competition 2024",
-        bullets: [
-          "Recognized for the programming and technical implementation of R.O.M.",
+        goal: [
+          "Provide a vendor-friendly C11 data-structure library with zero external dependencies.",
+          "Maintain a consistent, minimal API that’s easy to drop into existing builds.",
+        ],
+        role: [
+          "Library author: API design, C implementations, examples/documentation, and build layout.",
+        ],
+        decisions: [
+          "Unity build with an aggregator file (ds_all.c) for quick inclusion.",
+          "Coverage: vector, stack, queue, binary heap, BST, RB-tree, ordered array, segment tree, XOR list, Big Integer, fraction.",
+          "C11-only, portable across common compilers (GCC/Clang/MSVC).",
+        ],
+        outcome: [
+          "Fast drop-in integration with low compile overhead.",
+          "Good portability across major toolchains (GCC/Clang/MSVC).",
         ],
       },
       pl: {
-        title: "Best Technical Award — Taiwan College Game Design Competition 2024",
-        bullets: [
-          "Wyróżnienie za programistyczne i techniczne opracowanie projektu R.O.M.",
+        goal: [
+          "Dostarczyć vendorowalną bibliotekę struktur danych w C11 bez zewnętrznych zależności.",
+          "Utrzymać spójne, minimalistyczne API, łatwe do wpięcia w istniejące buildy.",
+        ],
+        role: [
+          "Autor biblioteki: projekt API, implementacje w C, przykłady/dokumentacja, układ builda.",
+        ],
+        decisions: [
+          "Unity build z plikiem agregującym ds_all.c dla szybkiego włączenia.",
+          "Zakres: vector, stack, queue, binary heap, BST, RB-tree, ordered array, segment tree, XOR list, Big Integer, fraction.",
+          "Tylko C11, przenośna w popularnych kompilatorach (GCC/Clang/MSVC).",
+        ],
+        outcome: [
+          "Szybka integracja „drop-in” z niskim narzutem kompilacji.",
+          "Dobra przenośność między toolchainami (GCC/Clang/MSVC).",
         ],
       },
     },
@@ -217,7 +390,7 @@ function FilterChip({ active, onClick, children }) {
 
 function Section({ title, children, right }) {
   return (
-    <section className="break-inside-avoid">
+    <section>
       <div className="flex items-end justify-between mb-3">
         <h2 className="text-[16px] font-semibold tracking-tight text-slate-100">{title}</h2>
         {right || null}
@@ -227,10 +400,23 @@ function Section({ title, children, right }) {
   );
 }
 
+// ---- Project card: hover/tap expands Details (no inner scroll) ----
 function ProjectCard({ p, lang }) {
+  const [open, setOpen] = React.useState(false);
   const { title, summary } = p.i18n[lang] || p.i18n.en;
+  const labels = I18N[lang]?.detailsLabels || I18N.en.detailsLabels;
+  const D = (p.details && (p.details[lang] || p.details.en)) || null;
+
   return (
-    <div className={`overflow-hidden rounded-2xl ${THEME.ring}`}>
+    <div
+      className={`
+        group relative overflow-visible rounded-2xl ${THEME.ring} bg-slate-900/5
+        transition-shadow duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
+        hover:z-50 hover:shadow-2xl
+      `}
+      onMouseLeave={() => setOpen(false)}
+      tabIndex={0}
+    >
       {/* Cover */}
       <div className="relative aspect-[16/9] bg-gradient-to-br from-slate-800 to-slate-900">
         {p.cover ? (
@@ -238,18 +424,16 @@ function ProjectCard({ p, lang }) {
             src={p.cover}
             alt={title}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
-        ) : null}
-        {!p.cover ? (
+        ) : (
           <div className="absolute inset-0 grid place-items-center text-slate-500">
             <Layers className="w-8 h-8 mb-2" />
             <span className="text-xs">No cover</span>
           </div>
-        ) : null}
+        )}
       </div>
+
       {/* Body */}
       <div className="p-4">
         <div className="flex items-center gap-2 flex-wrap">
@@ -272,8 +456,89 @@ function ProjectCard({ p, lang }) {
               <ExternalLink className="inline-block w-3.5 h-3.5 -mt-0.5" /> Demo
             </a>
           ) : null}
+
+          {/* Touch-friendly toggle (hidden on md+: hover expands) */}
+          {D && (
+            <button
+              onClick={() => setOpen((v) => !v)}
+              className="ml-auto md:hidden text-xs px-2 py-1 rounded-full border border-slate-600 text-slate-200 hover:bg-slate-800/60"
+              aria-expanded={open}
+              aria-controls={`details-${title}`}
+            >
+              {labels.details}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Background scrim (dim + blur) */}
+      <div
+        className={`
+          fixed inset-0 z-40 bg-black/40 backdrop-blur-sm
+          opacity-0 md:group-hover:opacity-100 ${open ? "opacity-100" : ""}
+          transition-opacity duration-300 pointer-events-none
+        `}
+      />
+
+      {/* Details overlay inside the card (keeps rounded corners) */}
+      {D && (
+        <div
+          className={`
+            absolute left-0 right-0 top-0 z-50 rounded-2xl bg-[#0d1730]/95 text-slate-200 ring-1 ring-slate-700/70 shadow-2xl
+            opacity-0 translate-y-2
+            md:group-hover:opacity-100 md:group-hover:translate-y-0
+            ${open ? "opacity-100 translate-y-0" : ""}
+            transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
+            md:group-hover:-left-6 md:group-hover:-right-6 md:group-hover:-top-8
+            ${open ? "-left-6 -right-6 -top-8" : ""}
+            max-h-[90vh] overflow-auto
+          `}
+        >
+          <div className="p-4 md:p-6">
+            <ul className="space-y-3 text-[13px] leading-relaxed">
+              {D.goal?.length > 0 && (
+                <li>
+                  <div className="font-semibold text-slate-100 mb-1">{labels.goal}</div>
+                  <ul className="list-disc ml-5 space-y-1">{D.goal.map((s,i)=><li key={`g${i}`}>{s}</li>)}</ul>
+                </li>
+              )}
+              {D.role?.length > 0 && (
+                <li>
+                  <div className="font-semibold text-slate-100 mb-1">{labels.role}</div>
+                  <ul className="list-disc ml-5 space-y-1">{D.role.map((s,i)=><li key={`r${i}`}>{s}</li>)}</ul>
+                </li>
+              )}
+              {D.decisions?.length > 0 && (
+                <li>
+                  <div className="font-semibold text-slate-100 mb-1">{labels.decisions}</div>
+                  <ul className="list-disc ml-5 space-y-1">{D.decisions.map((s,i)=><li key={`d${i}`}>{s}</li>)}</ul>
+                </li>
+              )}
+              {D.outcome?.length > 0 && (
+                <li>
+                  <div className="font-semibold text-slate-100 mb-1">{labels.outcome}</div>
+                  <ul className="list-disc ml-5 space-y-1">{D.outcome.map((s,i)=><li key={`o${i}`}>{s}</li>)}</ul>
+                </li>
+              )}
+            </ul>
+            {(p.link || p.demo) && (
+              <div className="mt-4 flex items-center gap-4">
+                {p.link && (
+                  <a href={p.link} target="_blank" rel="noreferrer" className={THEME.link}>
+                    <ExternalLink className="inline-block w-3.5 h-3.5 -mt-0.5" /> Repo
+                  </a>
+                )}
+                {p.demo && (
+                  <a href={p.demo} target="_blank" rel="noreferrer" className={THEME.link}>
+                    <ExternalLink className="inline-block w-3.5 h-3.5 -mt-0.5" /> Demo
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -292,9 +557,9 @@ export default function Portfolio() {
   }, [active]);
 
   return (
-    <div className={`w-full min-h-screen ${THEME.bg} ${THEME.text} p-6 md:p-10 print:p-0`}>
+    <div className={`w-full min-h-screen ${THEME.bg} ${THEME.text} p-6 md:p-10`}>
       <div className="max-w-6xl mx-auto">
-        { /* Top bar with language toggle */ }
+        {/* Top bar with language toggle */}
         <div className="flex items-center justify-end mb-6">
           <div className="flex items-center gap-2">
             <Languages className="w-4 h-4 text-cyan-300" aria-hidden="true" />
@@ -315,7 +580,7 @@ export default function Portfolio() {
           </div>
         </div>
 
-        { /* Hero */ }
+        {/* Hero */}
         <header className="mb-8">
           <div className="flex items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -364,48 +629,21 @@ export default function Portfolio() {
         </div>
 
         {/* Projects */}
-        <Section title={t.sections.projects} right={<span className={`text-[12px] ${THEME.subtext}`}>{filtered.length} / {PROJECTS.length}</span>}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Section
+          title={t.sections.projects}
+          right={<span className={`text-[12px] ${THEME.subtext}`}>{filtered.length} / {PROJECTS.length}</span>}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-auto gap-6">
             {filtered.map((p, i) => (
               <ProjectCard key={i} p={p} lang={lang} />
             ))}
           </div>
         </Section>
 
-        {/* Awards */}
-        <Section title={t.sections.awards}>
-          <ul className="list-disc ml-5 text-[14px]">
-            {AWARDS.map((a, i) => {
-              const item = a.i18n[lang] || a.i18n.en;
-              return (
-                <li key={i} className="mb-2">
-                  <div className="font-medium text-slate-100">{item.title}</div>
-                  {item.bullets && item.bullets.length ? (
-                    <ul className={`list-disc ml-5 text-[13px] ${THEME.subtext}`}>
-                      {item.bullets.map((b, j) => (
-                        <li key={j}>{b}</li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        </Section>
-
         <footer className={`mt-12 pt-6 border-t ${THEME.divider} ${THEME.subtext}`}>
           <div className="text-[12px]">© {new Date().getFullYear()} Peng-Yin Chen. Built with React & Tailwind.</div>
         </footer>
       </div>
-
-      <style>{`
-        @media print {
-          @page { size: A4; margin: 10mm; }
-          html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .shadow, .shadow-sm, .shadow-md, .shadow-lg { box-shadow: none !important; }
-          .rounded-2xl { border-radius: 0 !important; }
-        }
-      `}</style>
     </div>
   );
 }
